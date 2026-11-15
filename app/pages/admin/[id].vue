@@ -30,14 +30,23 @@ const isDrawn = computed(() => group.value?.status === 'drawn')
 const canDraw = computed(() => count.value >= LIMITS.participantsMin)
 const peopleNeeded = computed(() => Math.max(0, LIMITS.participantsMin - count.value))
 
+// Once we know the key is good, offer "Add to Home Screen" for this exact admin link
+const pwa = ref<{ href: string, appTitle: string } | null>(null)
+usePwaManifest(pwa)
+
 onMounted(async () => {
-  if (!api.captureKey()) {
+  const key = api.captureKey()
+  if (!key) {
     loadError.value = 'This link is missing its secret key. Open the full admin link you saved.'
     loading.value = false
     return
   }
   try {
     group.value = await api.getGroup()
+    pwa.value = {
+      href: `/admin/${group.value.id}/manifest.webmanifest?key=${encodeURIComponent(key)}`,
+      appTitle: 'Santa admin',
+    }
   }
   catch (e) {
     loadError.value = errorMessage(e)
@@ -109,7 +118,10 @@ async function deleteGroup() {
   const ok = await run(() => api.deleteGroup())
   working.value = false
   confirmDelete.value = false
-  if (ok) deleted.value = true
+  if (ok) {
+    deleted.value = true
+    pwa.value = null
+  }
 }
 
 function startEditing() {

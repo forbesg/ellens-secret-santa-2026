@@ -1,12 +1,11 @@
 // POST /api/groups: start a new Secret Santa. Returns the secret admin link.
 import type { CreateGroupResponse, Group } from '#shared/types'
 
-const MAX_GROUPS_PER_HOUR = 10
-
 export default defineEventHandler(async (event): Promise<CreateGroupResponse> => {
-  // Basic rate limit per (hashed) IP address
+  // Basic rate limit per (hashed) IP address (runtimeConfig.groupsPerHour, 10 by default)
+  const { groupsPerHour } = useRuntimeConfig(event)
   const ip = getHeader(event, 'cf-connecting-ip') ?? getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
-  const allowed = await hitRateLimit(await hashToken(`groups:${ip}`), MAX_GROUPS_PER_HOUR)
+  const allowed = await hitRateLimit(await hashToken(`groups:${ip}`), groupsPerHour)
   if (!allowed) {
     throw friendlyError(429, 'Whoa, that\'s a lot of Secret Santas! Please wait a little while and try again.')
   }

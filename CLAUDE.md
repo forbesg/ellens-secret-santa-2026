@@ -74,6 +74,7 @@ server/
     groups/[id]/participants/[pid]/link.post.ts  # new link for one person
     reveal/[token].get.ts
     reveal/[token]/wishlist.put.ts    # Phase 3
+  routes/                             # web app manifests (home, admin/[id], reveal/[token])
   utils/
     draw.ts          # pure allocation logic (no I/O), heavily tested
     tokens.ts        # generateToken, hashToken, safeEqual
@@ -151,6 +152,7 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
   - Drawn: each person shows ✅ viewed / ⏳ not yet, and a "Send Sam's link" share button for each person right after the draw (falling back to "Copy link" where the browser can't share). Includes "Start again" (reset, with a confirm) and "Delete this group".
   - Never show who got whom. Not even a "peek" button.
 - **`/reveal/[token]`:** "Hi Sam! 🎅" then a "Tap to find out who you're buying for" button that opens a gift-box animation to show the recipient name, budget and date. Phase 3 adds "Your wishlist" (editable) and "Their wishlist" (read only).
+- **Add to Home Screen (PWA):** the home page uses `/manifest.webmanifest`. Admin and reveal pages swap in a personal manifest (`/admin/<id>/manifest.webmanifest?key=…`, `/reveal/<token>/manifest.webmanifest`) whose `start_url` is the secret link itself, so the home-screen icon opens straight back to it. Built in `server/utils/manifest.ts`. The reveal manifest never mentions the recipient, and fetching it doesn't count as "viewed". No service worker or offline mode.
 - Accessibility: proper labels, focus states, `prefers-reduced-motion` respected for snow and animations.
 - Add `<meta name="robots" content="noindex">` on admin and reveal pages.
 

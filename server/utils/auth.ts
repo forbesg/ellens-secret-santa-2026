@@ -9,17 +9,21 @@ import { idSchema } from './schemas'
 import { getGroup } from './store'
 import { hashToken, isTokenShaped, safeEqual } from './tokens'
 
-export async function requireAdmin(event: H3Event): Promise<Group> {
-  const id = parseParam(event, 'id', idSchema)
-  const key = getHeader(event, 'x-admin-key')
-  if (!isTokenShaped(key)) throw notFound()
+/** The group, if `key` is its admin key. Otherwise null (never says which part was wrong). */
+export async function findAdminGroup(id: string, key: unknown): Promise<Group | null> {
+  if (!isTokenShaped(key)) return null
 
   const group = await getGroup(id)
-  if (!group) throw notFound()
+  if (!group) return null
 
   const keyHash = await hashToken(key)
-  if (!safeEqual(keyHash, group.adminKeyHash)) throw notFound()
+  return safeEqual(keyHash, group.adminKeyHash) ? group : null
+}
 
+export async function requireAdmin(event: H3Event): Promise<Group> {
+  const id = parseParam(event, 'id', idSchema)
+  const group = await findAdminGroup(id, getHeader(event, 'x-admin-key'))
+  if (!group) throw notFound()
   return group
 }
 

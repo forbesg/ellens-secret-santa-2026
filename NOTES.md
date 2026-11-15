@@ -18,3 +18,15 @@ Choices made where CLAUDE.md was unclear (simplest option that keeps the Golden 
 - **`tests/api.test.ts`** builds the whole app with the `node-server` preset and in-memory storage, then tests over real HTTP. It takes about 30 seconds. It creates under 10 groups, so it stays below the rate limit. If you add more group-creating tests, keep that in mind.
 - **No email (decided 2026-11-15).** Links are shared through the device's share sheet (Web Share API) or by copy/paste, so we don't collect email addresses at all, per Golden Rule #6. The add-person API ignores an `email` field if one is sent. Groups created during development before this change may still have an `email` stored, but it's never returned and expires with the group.
 - **The share button needs HTTPS.** Browsers only offer `navigator.share` (and clipboard copy) on HTTPS or `localhost`. Production on Cloudflare is HTTPS. To test on a tablet in dev, run `pnpm dev --https --host 0.0.0.0` (`--host` must come after `--https`, or it takes `--https` as the hostname).
+
+## Add to Home Screen (PWA)
+
+- **The admin and reveal manifests are per link.** Their `start_url` is the secret link, key or token included. It has to be: the admin page strips `?key=` from the address bar, and on iPhone/iPad a home-screen app doesn't share storage with Safari, so a plain `/admin/<id>` icon would open without the key. The server builds the manifest (`server/routes/`) after checking the key or token. A `blob:`/`data:` manifest made in the browser wouldn't work, because browsers ignore `start_url` from a different origin.
+- **The secret ends up stored with the home-screen icon on the device.** That's the same as a bookmark. Manifest responses are `no-store`.
+- **The admin manifest's `id` leaves the key out** (`/admin/<id>`), so the installed app means "this group's admin", not "this URL".
+- **A personal manifest is only swapped in once the key/token has worked** (`usePwaManifest`), so a broken link never offers to install a broken app.
+- **Fetching the reveal manifest doesn't mark the person as "seen it".** Only the reveal API does.
+- **There's no service worker or offline mode.** Chrome no longer needs one before it offers "Install", and the app needs the internet anyway. That's one less dependency (`@vite-pwa/nuxt`).
+- **No global `apple-mobile-web-app-title`.** The SPA shell's copy wouldn't be replaced by the page's own, leaving two, so iOS falls back to `<title>` on the home page.
+- **A "new link" or "Start again" breaks home-screen icons.** The old token or key in `start_url` stops working, so the person needs to add the new link to their home screen again.
+- **The group rate limit is `runtimeConfig.groupsPerHour`** (10, or set `NUXT_GROUPS_PER_HOUR`). `tests/api.test.ts` raises it so the tests don't hit it.

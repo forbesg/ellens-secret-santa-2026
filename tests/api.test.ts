@@ -9,6 +9,7 @@ await setup({
   server: true,
   browser: false,
   nuxtConfig: {
+    runtimeConfig: { groupsPerHour: 1000 }, // this file creates lots of groups
     nitro: {
       preset: 'node-server',
       storage: { santa: { driver: 'memory' } },
@@ -143,5 +144,49 @@ describe('Secret Santa API', () => {
   it('rejects made-up reveal links', async () => {
     expect(await statusOf('/api/reveal/nope')).toBe(404)
     expect(await statusOf(`/api/reveal/${'a'.repeat(43)}`)).toBe(404)
+  })
+})
+
+describe('Add to Home Screen manifests', () => {
+  it('serves the home page manifest', async () => {
+    const res = await fetch('/manifest.webmanifest')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('application/manifest+json')
+    expect((await res.json()).start_url).toBe('/')
+  })
+
+  it('gives the admin a manifest that opens their admin link, but only with the right key', async () => {
+    const { id, key } = await createGroup('Manifest Family')
+    const res = await fetch(`/admin/${id}/manifest.webmanifest?key=${key}`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('cache-control')).toContain('no-store')
+    const manifest = await res.json()
+    expect(manifest.start_url).toBe(`/admin/${id}?key=${key}`)
+    expect(manifest.scope).toBe(`/admin/${id}`)
+
+    expect(await statusOf(`/admin/${id}/manifest.webmanifest`)).toBe(404)
+    expect(await statusOf(`/admin/${id}/manifest.webmanifest?key=${'x'.repeat(43)}`)).toBe(404)
+  })
+
+  it('gives each person a reveal manifest that never mentions their match or counts as seen', async () => {
+    const { admin } = await createGroup()
+    for (const name of ['Ann', 'Ben', 'Cat']) await admin('/participants', { method: 'POST', body: { name } })
+    const drawn = await admin<AdminView>('/draw', { method: 'POST' })
+    const link = drawn.revealLinks![0]!
+    const token = new URL(link.url).pathname.split('/').pop()!
+
+    const res = await fetch(`/reveal/${token}/manifest.webmanifest`)
+    expect(res.status).toBe(200)
+    const manifest = await res.json()
+    expect(manifest.start_url).toBe(`/reveal/${token}`)
+    expect(manifest.name).toContain(link.name)
+    const others = ['Ann', 'Ben', 'Cat'].filter(n => n !== link.name)
+    for (const name of others) expect(JSON.stringify(manifest)).not.toContain(name)
+
+    // Fetching the manifest doesn't count as opening the link
+    const after = await admin<AdminView>('')
+    expect(after.participants.find(p => p.id === link.participantId)!.hasViewed).toBe(false)
+
+    expect(await statusOf(`/reveal/${'a'.repeat(43)}/manifest.webmanifest`)).toBe(404)
   })
 })
