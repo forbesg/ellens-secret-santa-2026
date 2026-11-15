@@ -1,4 +1,4 @@
-// Cloudflare Workers config. See README.md → "Deploying" for how to fill in <KV_NAMESPACE_ID>.
+// Cloudflare Workers config, used by `wrangler deploy` (locally, or by Workers Builds from GitHub).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "secret-santa",
@@ -11,6 +11,6 @@
   },
   "observability": { "enabled": true },
   "kv_namespaces": [
-    { "binding": "SANTA", "id": "<KV_NAMESPACE_ID>" }
+    { "binding": "SANTA", "id": "f1cb0cb4ef68403dbe0e6bf482fbbdd0" }
   ]
 }

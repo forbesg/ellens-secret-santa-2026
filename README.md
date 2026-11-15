@@ -18,23 +18,24 @@ pnpm lint
 
 ## Deploying to Cloudflare Workers
 
-One-time setup:
+Live at https://secret-santa.fnbg75.workers.dev/. The KV namespace (`SANTA`) already exists, and its id is in `wrangler.jsonc`.
 
-```bash
-pnpm wrangler login
-pnpm wrangler kv namespace create SANTA
-```
+**Automatic deploys:** every push to `main` is built and deployed by Cloudflare Workers Builds, once the repo is connected (Worker → Settings → Build):
 
-That prints an `id`. Paste it into `wrangler.jsonc` in place of `<KV_NAMESPACE_ID>`.
+- Branch: `main`
+- Build command: `pnpm build`
+- Deploy command: `npx wrangler deploy`
 
-Then deploy each time with:
+Each build shows up as a check on the commit in GitHub.
+
+**Deploying by hand** (needs `pnpm wrangler login` first):
 
 ```bash
 pnpm build
 pnpm deploy
 ```
 
-Wrangler prints the `*.workers.dev` URL. To use your own domain, add a custom domain to the Worker in the Cloudflare dashboard.
+To use your own domain, add a custom domain to the Worker in the Cloudflare dashboard.
 
 Groups delete themselves automatically about 60 days after the exchange date (or 120 days after they were made if there's no date).
 
