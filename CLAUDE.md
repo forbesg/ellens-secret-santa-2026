@@ -1,6 +1,6 @@
 # Secret Santa Web App
 
-A small web app for running a family Secret Santa. **Ellen (age 9) is the admin.** She creates a group, adds people (name + email), and presses **Draw**. Each person then gets a private link that shows only who *they* are buying for.
+A small web app for running a family Secret Santa. **Ellen (age 9) is the admin.** She creates a group, adds people (by name), and presses **Draw**. Each person then gets a private link that shows only who *they* are buying for.
 
 Built by Forbes (comfortable with Vue / Nuxt) and Ellen. Keep the code simple and readable. Forbes will maintain it, and Ellen will use it.
 
@@ -15,7 +15,7 @@ Built by Forbes (comfortable with Vue / Nuxt) and Ellen. Keep the code simple an
 3. **Store only hashes of secrets.** Generate tokens with `crypto.getRandomValues` (32 bytes, base64url). Store the `SHA-256` hash and compare with a constant-time check. The raw token exists only in the URL handed to the user.
 4. **The draw must always be valid.** Nobody draws themselves, and everyone gives exactly once and receives exactly once. This is covered by unit tests, which must pass.
 5. **The UI is kid-friendly.** Use big buttons, plain words ("Add a person", "Do the draw!"), friendly error messages and no jargon. Assume a 9-year-old on a tablet.
-6. **Collect as little data as possible.** Store names, emails and optional wishlists only. Nothing else.
+6. **Collect as little data as possible.** Store names and optional wishlists only. Nothing else (no email addresses or phone numbers).
 
 ---
 
@@ -31,7 +31,7 @@ Built by Forbes (comfortable with Vue / Nuxt) and Ellen. Keep the code simple an
 - **Hosting:** Cloudflare Workers, Nitro preset `cloudflare-module`, `nodejs_compat` flag.
 - **Validation:** `zod` for every request body or query.
 - **Tests:** `vitest` (+ `@nuxt/test-utils` where useful).
-- **Email (Phase 2 only):** Resend via `fetch` to its REST API. The API key is in `NUXT_RESEND_API_KEY`.
+- **Sharing links:** the Web Share API (`navigator.share`) opens the device's share sheet (chat, SMS, etc.), with a "Copy link" fallback. No email, so no email provider.
 
 Package manager: **pnpm**.
 
@@ -71,7 +71,7 @@ server/
     groups/[id]/participants/[pid].delete.ts
     groups/[id]/draw.post.ts
     groups/[id]/reset.post.ts
-    groups/[id]/send.post.ts          # Phase 2
+    groups/[id]/participants/[pid]/link.post.ts  # new link for one person
     reveal/[token].get.ts
     reveal/[token]/wishlist.put.ts    # Phase 3
   utils/
@@ -105,7 +105,6 @@ interface Group {
 interface Participant {
   id: string
   name: string
-  email?: string             // optional in Phase 1 (links can be shared by message)
   tokenHash?: string         // set at draw time
   viewedAt?: string
   wishlist?: string          // Phase 3, max 500 chars
@@ -121,8 +120,8 @@ interface Participant {
 
 ## Response shapes (enforce via `serialize.ts`)
 
-- **AdminView:** `{ id, name, budget, exchangeDate, status, participants: [{ id, name, email, hasViewed }], revealLinks?: [...] }`
-  - `revealLinks` (`[{ participantId, name, url }]`) is included **only** in the response to `POST /draw` (and `POST /reset` + redraw), because raw tokens exist only at that moment. After that, the admin can't recover the links, so use the "resend / regenerate link" endpoint (it rotates that one person's token without changing the match).
+- **AdminView:** `{ id, name, budget, exchangeDate, status, participants: [{ id, name, hasViewed }], revealLinks?: [...] }`
+  - `revealLinks` (`[{ participantId, name, url }]`) is included **only** in the response to `POST /draw` (and `POST /reset` + redraw), because raw tokens exist only at that moment. After that, the admin can't recover the links, so use the "new link" endpoint, `POST /participants/:pid/link` (it rotates that one person's token without changing the match).
 - **RevealView:** `{ groupName, budget, exchangeDate, giverName, recipientName, recipientWishlist? }`
 
 Add a test that the AdminView never contains `assignments` or any recipient name.
@@ -148,8 +147,8 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
 
 - **`/` (create):** a form with group name, optional budget and date, and a "Let's go! 🎄" button. On success, show the admin link big and clear: "This is your secret admin link. Save it! Bookmark it or ask a grown-up to keep it." Include Copy and Open buttons.
 - **`/admin/[id]`:**
-  - Draft: list of people with remove (✕), an "Add a person" form (name, optional email), a counter, and a big **"Do the draw! 🎁"** button (disabled under 3 people), with a confirm step.
-  - Drawn: each person shows ✅ viewed / ⏳ not yet, and a "Copy link" button for each person right after the draw. Includes "Start again" (reset, with a confirm) and "Delete this group".
+  - Draft: list of people with remove (✕), an "Add a person" form (name only), a counter, and a big **"Do the draw! 🎁"** button (disabled under 3 people), with a confirm step.
+  - Drawn: each person shows ✅ viewed / ⏳ not yet, and a "Send Sam's link" share button for each person right after the draw (falling back to "Copy link" where the browser can't share). Includes "Start again" (reset, with a confirm) and "Delete this group".
   - Never show who got whom. Not even a "peek" button.
 - **`/reveal/[token]`:** "Hi Sam! 🎅" then a "Tap to find out who you're buying for" button that opens a gift-box animation to show the recipient name, budget and date. Phase 3 adds "Your wishlist" (editable) and "Their wishlist" (read only).
 - Accessibility: proper labels, focus states, `prefers-reduced-motion` respected for snow and animations.
@@ -160,7 +159,7 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
 - Validate and limit inputs with zod: names ≤ 50 chars, max 50 participants, wishlist ≤ 500 chars.
 - Basic rate limit on `POST /api/groups` (e.g. KV counter per IP hash per hour, 10 max).
 - Escape everything (Vue does this by default; never use `v-html` for user content).
-- Emails (Phase 2) are plain and friendly, contain only the reveal link and group name, and never mention the recipient.
+- The share message is plain and friendly, contains only the person's name, the group name and their reveal link, and never mentions the recipient.
 
 ---
 
@@ -181,10 +180,9 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
 - [ ] Manual check: create a group, add 4 people, draw, open each link in a private window, and confirm the admin page shows no matches
 - [ ] README section: how to create the KV namespace and deploy
 
-### Phase 2: Email
-- [ ] `POST /api/groups/:id/send` sends each person with an email their link via Resend (regenerating tokens, since raw tokens aren't stored)
-- [ ] "Send by email" button for each person and "Email everyone"
-- [ ] Handle the free-tier limit (100/day) gracefully
+### Phase 2: Sharing (no email)
+- [x] "Send Sam's link" button for each person using the Web Share API (chat, SMS, etc.), falling back to "Copy link"
+- Email is out of scope: don't collect email addresses or add an email provider.
 
 ### Phase 3: Extras
 - [ ] Exclusions UI ("Who shouldn't Sam get?") + draw support
@@ -204,7 +202,7 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
 
 ## Assumptions (Forbes: edit these if they're wrong)
 
-- Links are shared by copy/paste in Phase 1, and email comes in Phase 2.
+- Links are shared through the device's share sheet (chat, SMS, etc.) or by copy/paste. There's no email.
 - Exclusions aren't needed until Phase 3.
 - Hosting is Cloudflare Workers + KV, and the domain is TBD.
 - Currency is shown as free text (e.g. "£20").

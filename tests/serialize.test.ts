@@ -14,7 +14,7 @@ function drawnGroup(): Group {
     adminKeyHash: 'ADMIN_HASH_SECRET',
     status: 'drawn',
     participants: [
-      { id: 'a', name: 'Alice', email: 'alice@example.com', tokenHash: 'TOKEN_A', viewedAt: '2026-11-02T00:00:00Z', wishlist: 'WISH_A' },
+      { id: 'a', name: 'Alice', tokenHash: 'TOKEN_A', viewedAt: '2026-11-02T00:00:00Z', wishlist: 'WISH_A' },
       { id: 'b', name: 'Bob', tokenHash: 'TOKEN_B', wishlist: 'WISH_B', excludes: ['c'] },
       { id: 'c', name: 'Cara', tokenHash: 'TOKEN_C' },
     ],
@@ -37,7 +37,7 @@ describe('toAdminView', () => {
     const view = toAdminView(drawnGroup(), [{ participantId: 'a', name: 'Alice', url: 'https://x/reveal/t' }])
     expect(Object.keys(view).sort()).toEqual(['budget', 'exchangeDate', 'id', 'name', 'participants', 'revealLinks', 'status'])
     for (const p of view.participants) {
-      expect(Object.keys(p).sort()).toEqual(['email', 'hasViewed', 'id', 'name'])
+      expect(Object.keys(p).sort()).toEqual(['hasViewed', 'id', 'name'])
     }
     for (const link of view.revealLinks!) {
       expect(Object.keys(link).sort()).toEqual(['name', 'participantId', 'url'])

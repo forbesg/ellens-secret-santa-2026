@@ -91,8 +91,6 @@ describe('Secret Santa API', () => {
       .rejects.toMatchObject({ data: { message: 'Please type a name.' } })
     await expect(admin('/participants', { method: 'POST', body: { name: 'x'.repeat(51) } }))
       .rejects.toMatchObject({ statusCode: 400 })
-    await expect(admin('/participants', { method: 'POST', body: { name: 'Sam', email: 'not-an-email' } }))
-      .rejects.toMatchObject({ data: { message: expect.stringContaining('email') } })
     await admin('/participants', { method: 'POST', body: { name: 'Sam' } })
     await expect(admin('/participants', { method: 'POST', body: { name: 'sam' } }))
       .rejects.toMatchObject({ data: { message: expect.stringContaining('already someone called') } })

@@ -44,7 +44,7 @@ export function useAdminApi(groupId: string) {
     updateGroup: (changes: { name?: string, budget?: string, exchangeDate?: string }) =>
       call<AdminView>('', { method: 'PATCH', body: changes }),
     deleteGroup: () => call<{ ok: true }>('', { method: 'DELETE' }),
-    addPerson: (person: { name: string, email?: string }) =>
+    addPerson: (person: { name: string }) =>
       call<AdminView>('/participants', { method: 'POST', body: person }),
     removePerson: (participantId: string) =>
       call<AdminView>(`/participants/${participantId}`, { method: 'DELETE' }),

@@ -58,9 +58,9 @@ async function run<T>(action: () => Promise<T>): Promise<T | undefined> {
   }
 }
 
-async function addPerson(person: { name: string, email: string }) {
+async function addPerson(name: string) {
   working.value = true
-  const updated = await run(() => api.addPerson({ name: person.name, email: person.email || undefined }))
+  const updated = await run(() => api.addPerson({ name }))
   working.value = false
   if (updated) {
     group.value = updated

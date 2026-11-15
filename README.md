@@ -45,10 +45,3 @@ pnpm build
 pnpm wrangler dev   # uses a local, simulated KV
 ```
 
-### Secrets (Phase 2 email)
-
-```bash
-pnpm wrangler secret put NUXT_RESEND_API_KEY
-```
-
-For local dev, copy `.env.example` to `.env` and fill it in. Never commit `.env`.

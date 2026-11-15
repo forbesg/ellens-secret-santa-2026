@@ -20,10 +20,6 @@ const budgetSchema = z
   .trim()
   .max(LIMITS.budgetMax, `Keep the budget short, like "£20".`)
 
-const emailSchema = z
-  .email({ error: 'That email doesn\'t look quite right. Check it and try again.' })
-  .max(LIMITS.emailMax)
-
 /** YYYY-MM-DD, not in the past, and not silly far in the future. */
 const dateSchema = z
   .string()
@@ -53,5 +49,4 @@ export const updateGroupSchema = z.object({
 
 export const addParticipantSchema = z.object({
   name: nameSchema,
-  email: z.preprocess(emptyToUndefined, emailSchema.optional()),
 })

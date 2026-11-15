@@ -19,11 +19,6 @@ export default defineNuxtConfig({
   },
   css: ['~/assets/css/main.css'],
 
-  // Phase 2: set NUXT_RESEND_API_KEY
-  runtimeConfig: {
-    resendApiKey: '',
-  },
-
   routeRules: {
     // Admin and reveal pages only make sense in the browser (the secrets live in the URL),
     // and rendering them client-side means link-preview bots never trigger a "viewed".

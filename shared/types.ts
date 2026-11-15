@@ -5,7 +5,6 @@
 
 export const LIMITS = {
   nameMax: 50,
-  emailMax: 254,
   budgetMax: 30,
   wishlistMax: 500,
   participantsMax: 50,
@@ -15,7 +14,6 @@ export const LIMITS = {
 export interface Participant {
   id: string
   name: string
-  email?: string
   tokenHash?: string // set at draw time
   viewedAt?: string
   wishlist?: string // Phase 3
@@ -43,7 +41,6 @@ export interface TokenIndexEntry {
 export interface AdminParticipantView {
   id: string
   name: string
-  email?: string
   hasViewed: boolean
 }
 

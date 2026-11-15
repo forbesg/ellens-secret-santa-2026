@@ -14,7 +14,6 @@ export function toAdminView(group: Group, revealLinks?: RevealLink[]): AdminView
     participants: group.participants.map(p => ({
       id: p.id,
       name: p.name,
-      email: p.email,
       hasViewed: Boolean(p.viewedAt),
     })),
   }

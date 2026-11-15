@@ -38,12 +38,6 @@ function avatarFor(id: string) {
         <p class="truncate text-lg font-bold">
           {{ person.name }}
         </p>
-        <p
-          v-if="person.email"
-          class="truncate text-sm text-muted"
-        >
-          {{ person.email }}
-        </p>
       </div>
 
       <template v-if="!drawn">

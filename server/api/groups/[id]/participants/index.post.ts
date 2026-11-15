@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     throw friendlyError(400, `There's already someone called ${body.name}. Try adding their last name too.`)
   }
 
-  group.participants.push({ id: generateId(8), name: body.name, email: body.email })
+  group.participants.push({ id: generateId(8), name: body.name })
   await saveGroup(group)
 
   setResponseStatus(event, 201)
