@@ -30,3 +30,8 @@ Choices made where CLAUDE.md was unclear (simplest option that keeps the Golden 
 - **No global `apple-mobile-web-app-title`.** The SPA shell's copy wouldn't be replaced by the page's own, leaving two, so iOS falls back to `<title>` on the home page.
 - **A "new link" or "Start again" breaks home-screen icons.** The old token or key in `start_url` stops working, so the person needs to add the new link to their home screen again.
 - **The group rate limit is `runtimeConfig.groupsPerHour`** (10, or set `NUXT_GROUPS_PER_HOUR`). `tests/api.test.ts` raises it so the tests don't hit it.
+
+## Countdown and snow toggle
+
+- **The countdown counts "sleeps"** (calendar days in the viewer's own time zone). On the day it says "🎁 It's present day!", and afterwards it disappears. It lives in `shared/` (not `server/utils/`) because it runs in the browser. It's still pure and tested.
+- **Snow defaults to off when the device asks for reduced motion.** Otherwise it's on. Pressing the button saves that person's choice on their device (`localStorage`, wrapped in try/catch, so private browsing just falls back to the default). An explicit "Snow: on" is respected even with reduced motion, since the person chose it. Snow only appears after the page loads in the browser, so reduced-motion users never get a flash of it.

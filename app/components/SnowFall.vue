@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Gentle falling snow. Purely decorative; hidden for people who prefer reduced motion.
+// Gentle falling snow. Purely decorative. The layout decides when to show it (snow toggle).
 const flakes = Array.from({ length: 24 }, (_, i) => ({
   left: `${(i * 37) % 100}%`,
   size: `${0.6 + ((i * 7) % 10) / 10}rem`,
@@ -34,9 +34,5 @@ const flakes = Array.from({ length: 24 }, (_, i) => ({
 
 @keyframes fall {
   to { transform: translateY(110vh) rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .snow { display: none; }
 }
 </style>

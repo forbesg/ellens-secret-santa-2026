@@ -67,6 +67,11 @@ onMounted(async () => {
         <p class="mt-2 text-xl text-muted">
           Welcome to <strong>{{ reveal.groupName }}</strong>
         </p>
+        <CountdownBadge
+          v-if="reveal.exchangeDate"
+          class="mt-3"
+          :date="reveal.exchangeDate"
+        />
       </div>
       <RevealCard :reveal="reveal" />
     </div>

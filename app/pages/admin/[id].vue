@@ -209,6 +209,11 @@ async function saveDetails() {
             <span v-if="group.budget">💰 {{ group.budget }}</span>
             <span v-if="group.exchangeDate">📅 {{ formatDate(group.exchangeDate) }}</span>
           </p>
+          <CountdownBadge
+            v-if="group.exchangeDate"
+            class="mt-3"
+            :date="group.exchangeDate"
+          />
           <div class="mt-3 flex flex-wrap justify-center gap-2">
             <UButton
               variant="ghost"

@@ -189,7 +189,9 @@ draw(participants, rng = crypto-based) → Record<giverId, receiverId>
 ### Phase 3: Extras
 - [ ] Exclusions UI ("Who shouldn't Sam get?") + draw support
 - [ ] Wishlists on the reveal page
-- [ ] Countdown to the exchange date, falling snow toggle, emoji avatars
+- [x] Countdown to the exchange date ("🎄 12 sleeps to go!") on the admin and reveal pages (`shared/countdown.ts`, tested)
+- [x] Falling snow toggle in the header. It starts off when the device prefers reduced motion, and the choice is remembered per device in `localStorage`
+- [x] Emoji avatars
 
 ---
 
