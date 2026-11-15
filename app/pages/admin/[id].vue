@@ -291,6 +291,7 @@ async function saveDetails() {
             v-else
             class="mt-4"
             :people="group.participants"
+            :group-name="group.name"
             :drawn="false"
             :links="links"
             :busy-id="busyId"
@@ -338,7 +339,7 @@ async function saveDetails() {
         >
           <template #description>
             <p v-if="Object.keys(links).length">
-              Send each person <strong>their own</strong> link. Copy them now: when you leave this page, you'll need to make new ones.
+              Send each person <strong>their own</strong> link. Send them now: when you leave this page, you'll need to make new ones.
             </p>
             <p v-else>
               Lost someone's link? Press "New link" to make another. Their old link will stop working, and they'll still get the same person.
@@ -352,6 +353,7 @@ async function saveDetails() {
         <UCard class="rounded-3xl">
           <ParticipantList
             :people="group.participants"
+            :group-name="group.name"
             :drawn="true"
             :links="links"
             :busy-id="busyId"

@@ -6,6 +6,7 @@ defineProps<{
   drawn: boolean
   links: Record<string, RevealLink> // participantId → link (only known right after the draw)
   busyId?: string | null
+  groupName: string
 }>()
 
 const emit = defineEmits<{
@@ -66,10 +67,11 @@ function avatarFor(id: string) {
           {{ person.hasViewed ? '✅ Seen it' : '⏳ Not yet' }}
         </UBadge>
         <div class="flex w-full justify-end sm:w-auto">
-          <CopyLinkButton
+          <ShareLinkButton
             v-if="links[person.id]"
             :url="links[person.id]!.url"
-            :label="`Copy ${person.name}'s link`"
+            :name="person.name"
+            :group-name="groupName"
           />
           <UButton
             v-else
