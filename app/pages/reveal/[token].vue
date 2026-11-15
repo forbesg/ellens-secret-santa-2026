@@ -65,5 +65,6 @@ onMounted(async () => {
       </div>
       <RevealCard :reveal="reveal" />
     </div>
+    <DesignedByEllen />
   </div>
 </template>
